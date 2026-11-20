@@ -1,0 +1,187 @@
+{
+  "defaults": {
+    "data_path": "./data",
+    "device": "cuda",
+    "server_epochs": 100,
+    "client_epochs": 1,
+    "batch_size": 32,
+    "learning_rate": 0.0005,
+    "client_optimizer": "adam",
+    "seed": 1,
+    "fedavg_weight_mode": "sample_count",
+    "switch_num_experts": 4,
+    "num_experts": 3,
+    "hidden_dim": 128,
+    "switch_layers": 2,
+    "switch_heads": 4,
+    "switch_ffn_dim": 256,
+    "patch_size": 4,
+    "dropout": 0.2
+  },
+  "method_defaults": {
+    "fedavg": {
+      "entry": "train.py",
+      "aggregation_method": "fedavg",
+      "expert_weight_mode": "uniform",
+      "method_label": "FedAvg",
+      "expert_aggregation": "uniform"
+    },
+    "fedjets": {
+      "entry": "train.py",
+      "aggregation_method": "fedjets",
+      "expert_weight_mode": "sample_count",
+      "fedjets_num_experts": 4,
+      "fedjets_top_k": 2,
+      "fedjets_num_anchor_clients": 4,
+      "fedjets_anchor_clients_per_round": 4,
+      "fedjets_normal_clients_per_round": 6,
+      "method_label": "FedJETS",
+      "expert_aggregation": "fedjets_sample_count"
+    },
+    "fedetf": {
+      "entry": "train.py",
+      "aggregation_method": "ha_vsmc_etf",
+      "expert_weight_mode": "sample_count",
+      "method_label": "FedETF / UFCDF+VSMC",
+      "expert_aggregation": "UFCDF+VSMC"
+    },
+    "freq_weighted_sc": {
+      "entry": "scripts/reliability_ablation_scnonexpert_train.py",
+      "aggregation_method": "ha_vsmc_etf",
+      "reliability_ablation_method": "freq_weighted",
+      "expert_weight_mode": "uniform",
+      "method_label": "Freq-Weighted-SCNonExpert",
+      "expert_aggregation": "frequency_u_weighted"
+    },
+    "freq_vsmc_sc": {
+      "entry": "scripts/reliability_ablation_scnonexpert_train.py",
+      "aggregation_method": "ha_vsmc_etf",
+      "reliability_ablation_method": "freq_vsmc",
+      "expert_weight_mode": "uniform",
+      "method_label": "Freq-VSMC-SCNonExpert",
+      "expert_aggregation": "frequency_u_plus_vsmc"
+    },
+    "multi_signal_sc": {
+      "entry": "scripts/reliability_ablation_scnonexpert_train.py",
+      "aggregation_method": "ha_vsmc_etf",
+      "reliability_ablation_method": "multi_signal_weighted",
+      "expert_weight_mode": "uniform",
+      "method_label": "Multi-signal-Weighted-SCNonExpert",
+      "expert_aggregation": "multi_signal_u_h_c_d_f"
+    }
+  },
+  "suites": {
+    "main_cifar10": {
+      "table_name": "Table 1: Main CIFAR-10 results",
+      "runs": [
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1, 0.3, 0.5],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        }
+      ]
+    },
+    "ablation": {
+      "table_name": "Table 2: Ablation study",
+      "runs": [
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "freq_vsmc_sc", "multi_signal_sc", "fedetf"]
+        }
+      ]
+    },
+    "dataset_generalization": {
+      "table_name": "Table 3: Dataset generalization",
+      "runs": [
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        },
+        {
+          "dataset": "cifar100",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        },
+        {
+          "dataset": "tinyimagenet",
+          "clients": 10,
+          "alphas": [0.1, 0.3],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        },
+        {
+          "dataset": "cinic10",
+          "clients": 10,
+          "alphas": [0.1, 0.3],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        }
+      ]
+    },
+    "client_sensitivity": {
+      "table_name": "Table 4: Client number sensitivity",
+      "runs": [
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        },
+        {
+          "dataset": "cifar10",
+          "clients": 20,
+          "alphas": [0.1],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"],
+          "method_overrides": {
+            "fedjets": {
+              "fedjets_num_anchor_clients": 4,
+              "fedjets_anchor_clients_per_round": 4,
+              "fedjets_normal_clients_per_round": 16
+            }
+          }
+        }
+      ]
+    },
+    "backbone_generalization": {
+      "table_name": "Table 5: Backbone generalization",
+      "runs": [
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "simplecnn",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        },
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "resnet18",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"]
+        },
+        {
+          "dataset": "cifar10",
+          "clients": 10,
+          "alphas": [0.1],
+          "backbone": "vit_tiny",
+          "methods": ["fedavg", "freq_weighted_sc", "fedjets", "fedetf"],
+          "overrides": {
+            "patch_size": 4
+          }
+        }
+      ]
+    }
+  }
+}

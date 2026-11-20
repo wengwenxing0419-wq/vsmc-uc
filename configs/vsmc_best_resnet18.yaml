@@ -1,0 +1,39 @@
+# Best VSMC setting kept from the current ResNet-18 sweep.
+# Source variant label:
+#   vsmc_expert_recursive_hd05_no_usage_loss05_drift002_route015_resnet18
+
+experiment:
+  name: vsmc_best_resnet18
+  backbone_name: resnet18
+  aggregation_method: vsmc_expert
+  preserved_variant_label: vsmc_expert_recursive_hd05_no_usage_loss05_drift002_route015_resnet18
+
+data:
+  data_name: cifar10
+  num_clients: 50
+  alpha: 0.1
+
+training:
+  server_epochs: 100
+  client_epochs: 1
+  device: cuda
+
+vsmc:
+  temperature: 1.0
+  loss_beta: 0.5
+  usage_beta: 0.0
+  drift_beta: 0.02
+  sample_beta: 0.2
+  route_beta: 0.15
+  history_decay: 0.5
+  missing_decay: 0.9
+  ess_threshold: 0.5
+  min_route_count: 1
+  use_resampling: false
+  resampling_noise_std: 0.0
+  degeneration_ess_threshold: 0.2
+  degeneration_temperature_scale: 2.0
+
+notes:
+  - This file stores the currently retained VSMC configuration for ResNet-18.
+  - It is a record file only and is not automatically loaded by train.py.
