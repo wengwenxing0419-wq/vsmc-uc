@@ -1,0 +1,22 @@
+name: Beta-precision FedTRA tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/beta-precision-fedtra]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Run Beta-precision FedTRA tests
+        run: python -m pytest tests/test_beta_precision_fedtra.py -q
