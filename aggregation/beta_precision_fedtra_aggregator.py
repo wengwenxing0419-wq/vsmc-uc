@@ -66,7 +66,7 @@ class BetaPrecisionFedTRAConfig:
             raise ValueError("eps must be in (0, 0.5)")
 
 
-class BetaPrecisionFedTRAggregator:
+class BetaPrecisionFedTRAAggregator:
     """FedTRA-style expert aggregation with adaptive Beta precision shares."""
 
     def __init__(self, config: BetaPrecisionFedTRAConfig, logger: Optional[Any] = None):
@@ -106,14 +106,14 @@ class BetaPrecisionFedTRAggregator:
     def _indexed_value(container: Any, index: int) -> Optional[float]:
         if isinstance(container, dict):
             value = container.get(index, container.get(str(index)))
-            return BetaPrecisionFedTRAggregator._as_float(value)
+            return BetaPrecisionFedTRAAggregator._as_float(value)
         if torch.is_tensor(container):
             flat = container.detach().reshape(-1)
             if 0 <= index < flat.numel():
                 return float(flat[index].item())
             return None
         if isinstance(container, (list, tuple)) and 0 <= index < len(container):
-            return BetaPrecisionFedTRAggregator._as_float(container[index])
+            return BetaPrecisionFedTRAAggregator._as_float(container[index])
         return None
 
     @staticmethod
@@ -127,7 +127,7 @@ class BetaPrecisionFedTRAggregator:
         else:
             return 0.0
         return sum(
-            max(BetaPrecisionFedTRAggregator._as_float(value, 0.0) or 0.0, 0.0)
+            max(BetaPrecisionFedTRAAggregator._as_float(value, 0.0) or 0.0, 0.0)
             for value in values
         )
 
