@@ -46,7 +46,7 @@ from aggregation.history_aware_vsmc_expert_aggregator import (
 )
 from aggregation.beta_precision_fedtra_aggregator import (
     BetaPrecisionFedTRAConfig,
-    BetaPrecisionFedTRAggregator,
+    BetaPrecisionFedTRAAggregator,
 )
 from aggregation.vsmc_expert_aggregator import (
     VSMCExpertAggregationConfig,
@@ -526,7 +526,7 @@ class Server:
                 "a frozen shared backbone feeds resource-aware expert subset selection, local clients fine-tune only their selected experts plus gate, and the server sparsely aggregates active experts with importance-weighted contributions."
             )
         elif self.base_aggregation_method == "beta_precision_fedtra":
-            self.beta_precision_fedtra_aggregator = BetaPrecisionFedTRAggregator(
+            self.beta_precision_fedtra_aggregator = BetaPrecisionFedTRAAggregator(
                 self.build_beta_precision_fedtra_config(), logger=self.logger
             )
             self.logger.info(
@@ -2701,7 +2701,7 @@ class Server:
 
     def aggregate_beta_precision_fedtra(self, client_updates, round_idx):
         if self.beta_precision_fedtra_aggregator is None:
-            self.beta_precision_fedtra_aggregator = BetaPrecisionFedTRAggregator(
+            self.beta_precision_fedtra_aggregator = BetaPrecisionFedTRAAggregator(
                 self.build_beta_precision_fedtra_config(), logger=self.logger
             )
         global_state = self.load_server_state()
