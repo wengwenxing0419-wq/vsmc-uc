@@ -4,7 +4,7 @@ import torch
 
 from aggregation.beta_precision_fedtra_aggregator import (
     BetaPrecisionFedTRAConfig,
-    BetaPrecisionFedTRAggregator,
+    BetaPrecisionFedTRAAggregator,
 )
 
 
@@ -25,7 +25,7 @@ def _metrics(client_id: int, usage: float, route_count: float):
 
 
 def _aggregator(tmp_path):
-    return BetaPrecisionFedTRAggregator(
+    return BetaPrecisionFedTRAAggregator(
         BetaPrecisionFedTRAConfig(
             num_particles=16,
             kappa_u=10.0,
