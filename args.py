@@ -152,6 +152,7 @@ parse.add_argument(
         "fedavg_expert_only",
         "fedavg_shared_only",
         "vsmc_expert",
+        "beta_precision_fedtra",
         "joint_vsmc_expert",
         "temporal_vsmc_expert",
         "temporal_latent_vsmc_expert",
@@ -528,6 +529,18 @@ parse.add_argument("--vsmc_degeneration_temperature_scale",type=float,default=2.
 parse.add_argument("--vsmc_fallback_to_fedavg_on_degenerate",type=str2bool,default=False)
 parse.add_argument("--vsmc_debug",type=str2bool,default=False)
 parse.add_argument("--vsmc_variant",type=str,default="baseline",choices=["baseline", "full_vsmc"])
+parse.add_argument("--beta_precision_num_particles", type=int, default=32)
+parse.add_argument("--beta_precision_kappa_u", type=float, default=10.0)
+parse.add_argument("--beta_precision_kappa_c", type=float, default=10.0)
+parse.add_argument("--beta_precision_omd_lr", type=float, default=0.05)
+parse.add_argument("--beta_precision_gamma_min", type=float, default=1e-3)
+parse.add_argument("--beta_precision_transition_rho", type=float, default=0.9)
+parse.add_argument("--beta_precision_transition_std", type=float, default=0.15)
+parse.add_argument("--beta_precision_initial_std", type=float, default=1.0)
+parse.add_argument("--beta_precision_mean_slope_u", type=float, default=1.0)
+parse.add_argument("--beta_precision_mean_slope_c", type=float, default=1.0)
+parse.add_argument("--beta_precision_mean_intercept_c", type=float, default=0.0)
+parse.add_argument("--beta_precision_eps", type=float, default=1e-6)
 parse.add_argument("--temporal_momentum",type=float,default=0.8)
 parse.add_argument("--temporal_align_beta",type=float,default=0.5)
 parse.add_argument("--temporal_jump_beta",type=float,default=0.2)
