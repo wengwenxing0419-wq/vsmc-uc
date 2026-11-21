@@ -44,6 +44,10 @@ from aggregation.history_aware_vsmc_expert_aggregator import (
     HAVSMCETFConfig,
     HAVSMCETFExpertAggregator,
 )
+from aggregation.beta_precision_fedtra_aggregator import (
+    BetaPrecisionFedTRAConfig,
+    BetaPrecisionFedTRAggregator,
+)
 from aggregation.vsmc_expert_aggregator import (
     VSMCExpertAggregationConfig,
     VSMCExpertAggregator,
@@ -437,6 +441,7 @@ class Server:
         self.ha_vsmc_proxy_loader = self.build_ha_vsmc_proxy_loader()
         self._log_dataset_and_backbone_config()
         self.vsmc_aggregator = None
+        self.beta_precision_fedtra_aggregator = None
         self.ha_vsmc_etf_aggregator = None
         self.temporal_vsmc_aggregator = None
         self.temporal_vsmc_memory = {}
@@ -519,6 +524,15 @@ class Server:
             self.logger.info(
                 "HFedMoE comparison baseline selected: common experiment settings are inherited from args.py; "
                 "a frozen shared backbone feeds resource-aware expert subset selection, local clients fine-tune only their selected experts plus gate, and the server sparsely aggregates active experts with importance-weighted contributions."
+            )
+        elif self.base_aggregation_method == "beta_precision_fedtra":
+            self.beta_precision_fedtra_aggregator = BetaPrecisionFedTRAggregator(
+                self.build_beta_precision_fedtra_config(), logger=self.logger
+            )
+            self.logger.info(
+                "Dynamic Beta-precision FedTRA selected: training routing support and "
+                "leave-one-out update consistency form separate Beta observations; "
+                "Jensen-surrogate predictive loss drives OMD precision allocation."
             )
         elif self.base_aggregation_method == "vsmc_expert":
             self.vsmc_aggregator = self.build_vsmc_aggregator()
@@ -2115,6 +2129,8 @@ class Server:
             self.aggregate_fedavg_expert_only(client_updates)
         elif method == "fedavg_shared_only":
             self.aggregate_fedavg_shared_only(client_updates)
+        elif method == "beta_precision_fedtra":
+            self.aggregate_beta_precision_fedtra(client_updates, round_idx)
         elif method == "vsmc_expert":
             self.aggregate_vsmc_expert(client_updates, round_idx)
         elif method == "ha_vsmc_etf":
@@ -2206,6 +2222,24 @@ class Server:
             small_entropy_bonus=self.args.ha_vsmc_small_entropy_bonus,
             reliability_weighted_update=self.args.ha_vsmc_reliability_weighted_update,
             seed=self.args.seed,
+        )
+
+    def build_beta_precision_fedtra_config(self):
+        return BetaPrecisionFedTRAConfig(
+            num_particles=self.args.beta_precision_num_particles,
+            kappa_u=self.args.beta_precision_kappa_u,
+            kappa_c=self.args.beta_precision_kappa_c,
+            omd_lr=self.args.beta_precision_omd_lr,
+            gamma_min=self.args.beta_precision_gamma_min,
+            transition_rho=self.args.beta_precision_transition_rho,
+            transition_std=self.args.beta_precision_transition_std,
+            initial_std=self.args.beta_precision_initial_std,
+            mean_slope_u=self.args.beta_precision_mean_slope_u,
+            mean_slope_c=self.args.beta_precision_mean_slope_c,
+            mean_intercept_c=self.args.beta_precision_mean_intercept_c,
+            eps=self.args.beta_precision_eps,
+            seed=self.args.seed,
+            log_dir=os.path.join(self.args.save_result, "logs"),
         )
 
     def build_vsmc_config(self):
@@ -2663,6 +2697,28 @@ class Server:
             f"--anchor_mode:{str(round_data.get('anchor_mode', 'fedavg'))} "
             f"--fedavg_blend_enabled:{bool(round_data.get('fedavg_blend_enabled', True))} "
             f"--expert_output:{str(round_data.get('expert_output', 'unknown'))}"
+        )
+
+    def aggregate_beta_precision_fedtra(self, client_updates, round_idx):
+        if self.beta_precision_fedtra_aggregator is None:
+            self.beta_precision_fedtra_aggregator = BetaPrecisionFedTRAggregator(
+                self.build_beta_precision_fedtra_config(), logger=self.logger
+            )
+        global_state = self.load_server_state()
+        aggregated_state, round_info = self.beta_precision_fedtra_aggregator.aggregate_model_state(
+            global_state=global_state,
+            client_updates=client_updates,
+            num_experts=self.args.switch_num_experts,
+            device=self.device,
+        )
+        self.model.load_state_dict(aggregated_state)
+        self.logger.info(
+            f"--beta_precision_fedtra --round:{round_idx} "
+            f"--gamma_u:{round_info['gamma_u_after']:.6f} "
+            f"--gamma_c:{round_info['gamma_c_after']:.6f} "
+            f"--predictive_nll:{round_info['predictive_nll']:.6f} "
+            f"--surrogate_nll:{round_info['surrogate_nll']:.6f} "
+            f"--pairs:{round_info['num_pairs']}"
         )
 
     def aggregate_vsmc_expert(self, client_updates, round_idx):
