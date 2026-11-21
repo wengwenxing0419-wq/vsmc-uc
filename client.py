@@ -545,6 +545,11 @@ class Client:
             "expert_losses": dict(expert_metric_source["expert_losses"]),
             "expert_usage": dict(expert_metric_source["expert_usage"]),
             "route_counts": dict(expert_metric_source["route_counts"]),
+            # Explicit training-time routing observations for FedTRA-style u.
+            "train_expert_usage": dict(train_expert_metrics["expert_usage"]),
+            "train_route_counts": dict(train_expert_metrics["route_counts"]),
+            "train_num_tokens": float(train_expert_metrics["num_tokens"]),
+            "train_layer_route_counts": dict(train_expert_metrics["layer_route_counts"]),
             "num_tokens": float(expert_metric_source["num_tokens"]),
             "router_entropy": float(expert_metric_source["router_entropy"]),
             "router_aux_loss": float(expert_metric_source["router_aux_loss"]),
